@@ -5,10 +5,10 @@ import re
 import random
 
 bias = 0
-width, height = 800, 800
+width, height = 400, 400
 dimensions = (width, height)
-zero_meaning = "capybara"
-one_meaning = "star"
+zero_meaning = "zero"
+one_meaning = "one"
 training_dir = "training/"
 identification_dir = "testing/"
 
@@ -21,7 +21,7 @@ except OSError:
 
 if weights.shape != (height, width):
 	print("Saved weights have dimensions %i x %i, while provided dimensions are %i x %i." % (weights.shape[1], weights.shape[0], width, height))
-	print("Would you like to (o)verwrite the saved weights with a correctly-sized empty array, (s)cale the saved weights to the provided dimensions, or (r)eplace width and height parameters with the dimensions of the saved weights?")
+	print("(O)verwrite the saved weights with a correctly-sized empty array, (s)cale the saved weights to the provided dimensions, or (r)eplace width and height parameters with the dimensions of the saved weights?")
 	x = input()
 	
 	if x.lower()[0] == "o":
@@ -52,16 +52,22 @@ def step_function(score):
 # processes image at given path
 # returns numpy array of pixel values ranging from 0 (white) to 1 (black)
 def img_to_array(path):
-	img = cv2.imread(path)
+
+	img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+	img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA) 
 	
-	if img.shape != dimensions:
-		#image is incorrectly sized; resize
-		img = cv2.resize(img, dimensions)
-		
-	gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-	invert = cv2.bitwise_not(gray)
-	scaled = invert / 255.0
-	return scaled
+	# replace transparent with white 
+	trans_mask = img[:,:,3] == 0
+	img[trans_mask] = [255, 255, 255, 255]
+	
+	# greyscale, set black to 1 and white to 0
+	new_img = cv2.bitwise_not(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))/255
+	
+	if new_img.shape != dimensions:
+		# image is incorrectly sized; resize
+		new_img = cv2.resize(new_img, dimensions)
+
+	return new_img
 
 # trains the network with image at path
 # truth represents the categorization of the image—either 0 or 1
@@ -109,6 +115,8 @@ def identify_all(dir, weights):
 
 	print("Done Identifying.")
 
+def dump_weights(weights):
+	cv2.imwrite("debug.png", (255*(weights - np.min(weights))/np.ptp(weights)).astype(int))
 
 x = ""
 while x != "q":
@@ -124,5 +132,5 @@ while x != "q":
 	elif x == "i":
 		identify_all(identification_dir, weights)
 	elif x == "d":
-		cv2.imwrite("debug.png", weights*128.5)
+		dump_weights(weights)
 		print("Dumped weights to image.")
