@@ -5,7 +5,7 @@ import re
 import random
 
 bias = 0
-width, height = 400, 400
+width, height = 800, 800
 dimensions = (width, height)
 zero_meaning = "capybara"
 one_meaning = "star"
@@ -21,12 +21,16 @@ except OSError:
 
 if weights.shape != (height, width):
 	print("Saved weights have dimensions %i x %i, while provided dimensions are %i x %i." % (weights.shape[1], weights.shape[0], width, height))
-	print("Would you like to (o)verwrite the saved weights with a correctly-sized empty array, or (r)eplace width and height parameters with the dimensions of the saved weights?")
+	print("Would you like to (o)verwrite the saved weights with a correctly-sized empty array, (s)cale the saved weights to the provided dimensions, or (r)eplace width and height parameters with the dimensions of the saved weights?")
 	x = input()
 	
 	if x.lower()[0] == "o":
 		print("Overwriting weights.txt")
 		weights = np.zeros((height, width))
+		np.savetxt("weights.txt", weights)
+	elif x.lower()[0] == "s":
+		print("Scaling weights.txt")
+		weights = cv2.resize(weights, (height, width))
 		np.savetxt("weights.txt", weights)
 	else:
 		width = weights.shape[1]
