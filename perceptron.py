@@ -5,12 +5,12 @@ import re
 import random
 
 bias = 0
-width, height = 400, 400
+width, height = 800, 800
 dimensions = (width, height)
-zero_meaning = "zero"
-one_meaning = "one"
-training_dir = "training/"
-identification_dir = "testing/"
+zero_meaning = "capybara"
+one_meaning = "star"
+training_dir = "training/capystar/"
+identification_dir = "testing/capystar/"
 
 try:
 	weights = np.loadtxt("weights.txt")
